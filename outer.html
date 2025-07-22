@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Viewer - คุณโอ้</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font as per instructions */
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px; /* Rounded corners for the container */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            width: 100%;
+            max-width: 600px; /* Max width for better readability */
+            text-align: center;
+        }
+        select, button {
+            border-radius: 8px; /* Rounded corners for inputs and buttons */
+            padding: 10px 15px;
+            margin: 8px 0;
+            font-size: 1rem;
+            border: 1px solid #cbd5e1; /* Light gray border */
+            transition: all 0.2s ease-in-out;
+        }
+        select:focus, button:focus {
+            outline: none;
+            border-color: #6366f1; /* Indigo on focus */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus ring */
+        }
+        button {
+            background-color: #6366f1; /* Indigo background for buttons */
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px; /* Spacing between buttons */
+        }
+        button:hover {
+            background-color: #4f46e5; /* Darker indigo on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+        #imageDisplay {
+            margin-top: 20px;
+            border: 1px solid #e2e8f0; /* Light border for image area */
+            border-radius: 10px;
+            min-height: 200px; /* Minimum height for the image area */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8fafc; /* Very light background for image area */
+            overflow: hidden; /* Hide overflow if image is too big */
+        }
+        #imageDisplay img {
+            max-width: 100%;
+            max-height: 400px; /* Max height for the image */
+            border-radius: 8px;
+            object-fit: contain; /* Ensure the entire image is visible */
+        }
+        #fileNameText {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #475569; /* Gray text for file name */
+            word-break: break-all; /* Break long file names */
+        }
+        .error-message {
+            color: #ef4444; /* Red for error messages */
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            border: 1px solid #e2e8f0;
+        }
+        .message-box-content {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .message-box button {
+            background-color: #6366f1;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .message-box button:hover {
+            background-color: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">โปรแกรมแสดงรูปภาพ</h1>
+
+        <div class="mb-4">
+            <label for="combo0" class="block text-gray-700 text-sm font-bold mb-2">Combo 0 (ID, VT):</label>
+            <select id="combo0" class="w-full">
+                <option value="ID">ID</option>
+                <option value="VT">VT</option>
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label for="combo2" class="block text-gray-700 text-sm font-bold mb-2">Combo 2 (CITY, CIVIC):</label>
+            <select id="combo2" class="w-full">
+                <option value="CITY">CITY</option>
+                <option value="CIVIC">CIVIC</option>
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label for="combo3" class="block text-gray-700 text-sm font-bold mb-2">Combo 3 (8D1A, 8D1F):</label>
+            <select id="combo3" class="w-full">
+                <option value="8D1A">8D1A</option>
+                <option value="8D1F">8D1F</option>
+            </select>
+        </div>
+
+        <div class="flex justify-center flex-wrap gap-2 mb-6">
+            <button id="command1" class="px-6 py-2">แสดงรูปภาพ -1</button>
+            <button id="command2" class="px-6 py-2">แสดงรูปภาพ -2</button>
+            <button id="command3" class="px-6 py-2">แสดงรูปภาพ -3</button>
+        </div>
+
+        <div id="imageDisplay" class="bg-gray-100 p-4 rounded-lg flex items-center justify-center min-h-[200px]">
+            <img id="imagePlaceholder" src="" alt="Image will appear here" class="hidden">
+            <p id="noImageMessage" class="text-gray-500">เลือกค่าและกดปุ่มเพื่อแสดงรูปภาพ</p>
+        </div>
+        <p id="fileNameText" class="text-gray-600 mt-4 break-all">ชื่อไฟล์: </p>
+        <p id="errorMessage" class="error-message hidden"></p>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="messageBox" class="message-box">
+        <div id="messageBoxContent" class="message-box-content"></div>
+        <button onclick="document.getElementById('messageBox').style.display = 'none';">ตกลง</button>
+    </div>
+
+    <script>
+        // Function to show custom message box instead of alert/MsgBox
+        function showMessageBox(message) {
+            const messageBox = document.getElementById('messageBox');
+            const messageBoxContent = document.getElementById('messageBoxContent');
+            messageBoxContent.textContent = message;
+            messageBox.style.display = 'block';
+        }
+
+        // Get references to HTML elements
+        const combo0 = document.getElementById('combo0');
+        const combo2 = document.getElementById('combo2');
+        const combo3 = document.getElementById('combo3');
+        const command1 = document.getElementById('command1');
+        const command2 = document.getElementById('command2');
+        const command3 = document.getElementById('command3');
+        const imagePlaceholder = document.getElementById('imagePlaceholder');
+        const noImageMessage = document.getElementById('noImageMessage');
+        const fileNameText = document.getElementById('fileNameText');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Base path for images. Now assumes images are in the same folder as the HTML file.
+        const imageBasePath = ''; // Changed from 'pics/' to ''
+
+        /**
+         * Generates the image file name based on selected combo box values and a suffix.
+         * @param {number} suffix - The suffix for the image file (e.g., 1, 2, 3).
+         * @returns {string} The generated image file name.
+         */
+        function generateFileName(suffix) {
+            // Combine the values from the dropdowns and the suffix to form the filename.
+            // Example: IDCITY8D1A-1.jpg
+            return combo0.value + combo2.value + combo3.value + '-' + suffix + '.jpg';
+        }
+
+        /**
+         * Displays the image based on the generated file name.
+         * Handles image loading success and error.
+         * @param {string} fileName - The name of the image file to display.
+         */
+        function displayImage(fileName) {
+            const fullPath = imageBasePath + fileName; // fullPath will now just be fileName
+
+            // Clear previous error messages and hide the image
+            errorMessage.classList.add('hidden');
+            imagePlaceholder.classList.add('hidden');
+            noImageMessage.classList.remove('hidden');
+            imagePlaceholder.src = ''; // Clear previous image source
+
+            fileNameText.textContent = 'ชื่อไฟล์: ' + fileName;
+
+            // Set the image source
+            imagePlaceholder.src = fullPath;
+
+            // Handle image loading success
+            imagePlaceholder.onload = () => {
+                noImageMessage.classList.add('hidden');
+                imagePlaceholder.classList.remove('hidden');
+                errorMessage.classList.add('hidden'); // Hide error if it was previously shown
+            };
+
+            // Handle image loading error (e.g., file not found)
+            imagePlaceholder.onerror = () => {
+                noImageMessage.classList.remove('hidden'); // Show "no image" message
+                imagePlaceholder.classList.add('hidden'); // Hide the broken image icon
+                errorMessage.textContent = `ไม่พบไฟล์รูปภาพ: ${fullPath}`;
+                errorMessage.classList.remove('hidden');
+                showMessageBox(`ไม่พบไฟล์รูปภาพ: ${fullPath}\nโปรดตรวจสอบว่าไฟล์อยู่ในโฟลเดอร์เดียวกับไฟล์ HTML และชื่อไฟล์ถูกต้อง`);
+            };
+        }
+
+        // Add event listeners to the buttons
+        command1.addEventListener('click', () => {
+            const fileName = generateFileName(1);
+            displayImage(fileName);
+        });
+
+        command2.addEventListener('click', () => {
+            const fileName = generateFileName(2);
+            displayImage(fileName);
+        });
+
+        command3.addEventListener('click', () => {
+            const fileName = generateFileName(3);
+            displayImage(fileName);
+        });
+
+        // Initial display state
+        noImageMessage.classList.remove('hidden');
+        imagePlaceholder.classList.add('hidden');
+    </script>
+</body>
+</html>
